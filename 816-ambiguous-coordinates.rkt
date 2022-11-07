@@ -20,14 +20,18 @@
 (define (all-wd-pairs str)
   (map list (whole-str str) (decimal-str str)))
 
+; (define (whole-valid? str)
+;   (cond [(= (string-length str) 1) true]
+;         [(eq? (first (string->list str)) #\0) false]
+;         [else true]))
+
 (define (whole-valid? str)
-  (cond [(= (string-length str) 1) true]
-        [(eq? (first (string->list str)) #\0) false]
-        [else true]))
+  (or (= (string-length str) 1)
+      (not (string-prefix? str "0"))))
 
 (define (decimal-valid? str)
   (or (zero? (string-length str))
-      (not (eq? (last (string->list str)) #\0))))
+      (not (string-suffix? str "0"))))
 
 (define (wd-pair-valid? wd-pair)
   (let ([whole (car wd-pair)]
@@ -53,10 +57,22 @@
 (define (valid-xy-pairs str)
   (map (curry map valid-nums) (all-xy-pairs str)))
 
-(define (all-cons xy)
-  (let ([x-list (car xy)]
-        [y-list (cadr xy)])
-    (append-map (lambda (x) (map (lambda (y) (string-append "(" x ", " y ")")) y-list)) x-list)))
+; (define (all-cons xy)
+;   (let ([x-list (car xy)]
+;         [y-list (cadr xy)])
+;     (append-map (lambda (x)
+;                   (map (lambda (y)
+;                          (string-append "(" x ", " y ")"))
+;                        y-list))
+;                 x-list)))
+
+(define (all-cons xy-pair)
+  (let ([x-list (car xy-pair)]
+        [y-list (cadr xy-pair)])
+    (map (curryr string-join ", "
+                 #:before-first "("
+                 #:after-last ")")
+         (cartesian-product x-list y-list))))
 
 (define/contract (ambiguous-coordinates s)
   (-> string? (listof string?))
