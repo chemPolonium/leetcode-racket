@@ -13,19 +13,13 @@
         (return false))
       (define dp (make-vector (add1 m) (set)))
       (vector-set! dp 0 (set-add (vector-ref dp 0) 0))
-      (for-each
-       (lambda (num)
-         (for-each
-          (lambda (i)
-            (for-each
-             (lambda (x)
-               (let ([curr (+ x num)])
-                 (when (= (* curr n) (* s i))
-                   (return true))
-                 (vector-set! dp i (set-add (vector-ref dp i) curr))))
-             (set->list (vector-ref dp (sub1 i)))))
-          (range m 0 -1)))
-       nums)
+      (for* ([num (in-list nums)]
+             [i (in-range m 0 -1)]
+             [x (in-immutable-set (vector-ref dp (sub1 i)))])
+        (let ([curr (+ x num)])
+          (when (= (* curr n) (* s i))
+            (return true))
+          (vector-set! dp i (set-add (vector-ref dp i) curr))))
       false)
     (wrap))
   (call/cc f))
