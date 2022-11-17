@@ -1,6 +1,6 @@
 #lang racket
 
-; 朴素思想，超时
+; ; simple compare, TLE
 ; (define (subeq? s word)
 ;   (define (iter sres wordres)
 ;     (cond [(null? wordres) true]
@@ -15,30 +15,30 @@
 ;   (-> string? (listof string?) exact-integer?)
 ;   (count (lambda (word) (subeq? h word)) words))
 
-; 哈希表不用二分查找，超时
-(define (s->hash s)
-  (define h (make-hash))
-  (for ([c (in-string s (sub1 (string-length s)) -1 -1)]
-        [i (in-range (sub1 (string-length s)) -1 -1)])
-    (hash-set! h c (cons i (hash-ref h c empty))))
-  h)
+; ; hash without binary search, TLE
+; (define (s->hash s)
+;   (define h (make-hash))
+;   (for ([c (in-string s (sub1 (string-length s)) -1 -1)]
+;         [i (in-range (sub1 (string-length s)) -1 -1)])
+;     (hash-set! h c (cons i (hash-ref h c empty))))
+;   h)
 
-(define (subeq? h word)
-  (define (iter pos wordres)
-    (cond [(boolean? pos) false]
-          [(null? wordres) true]
-          [else (iter (findf (lambda (x)
-                               (> x pos))
-                             (hash-ref h (car wordres) (list -1)))
-                      (cdr wordres))]))
-  (iter -1 word))
+; (define (subeq? h word)
+;   (define (iter pos wordres)
+;     (cond [(boolean? pos) false]
+;           [(null? wordres) true]
+;           [else (iter (findf (lambda (x)
+;                                (> x pos))
+;                              (hash-ref h (car wordres) (list -1)))
+;                       (cdr wordres))]))
+;   (iter -1 word))
 
-(define/contract (num-matching-subseq s words)
-  (-> string? (listof string?) exact-integer?)
-  (define h (s->hash s))
-  (count (lambda (word) (subeq? h (string->list word))) words))
+; (define/contract (num-matching-subseq s words)
+;   (-> string? (listof string?) exact-integer?)
+;   (define h (s->hash s))
+;   (count (lambda (word) (subeq? h (string->list word))) words))
 
-; 多指针，还是超时
+; ; multi ptr, TLE
 ; (define/contract (num-matching-subseq s words)
 ;   (-> string? (listof string?) exact-integer?)
 ;   (count (negate non-empty-string?)
@@ -50,7 +50,7 @@
 ;                  (substring w 1)
 ;                  w)))))
 
-; 基于字符位置的多指针，还是超时
+; ; multi ptr with string-ref, TLE
 ; (define/contract (num-matching-subseq s words)
 ;   (-> string? (listof string?) exact-integer?)
 ;   (define wl
@@ -68,4 +68,69 @@
 ;         1
 ;         0)))
 
-(num-matching-subseq "abcde" (list "a" "bb" "acd" "ace"))
+; ; still not works
+; (define/contract (num-matching-subseq s words)
+;   (-> string? (listof string?) exact-integer?)
+;   (count null?
+;          (for/fold ([ws (map string->list words)])
+;                    ([c s])
+;            (map (lambda (w)
+;                   (if (and (pair? w)
+;                            (equal? c (car w)))
+;                       (cdr w)
+;                       w))
+;                 ws))))
+
+; ; multi ptr with hash, works
+; (define/contract (num-matching-subseq s words)
+;   (-> string? (listof string?) exact-integer?)
+;   (define h (make-hash))
+;   (for ([w (map string->list words)])
+;     (hash-set! h (car w) (cons (cdr w) (hash-ref h (car w) empty))))
+;   (for/sum ([c s])
+;     (let ([q (hash-ref h c empty)])
+;       (hash-remove! h c)
+;       (count (lambda (x)
+;                (unless (null? x)
+;                  (hash-set! h (car x) (cons (cdr x) (hash-ref h (car x) empty))))
+;                (null? x))
+;              q))))
+
+; ; pure function! final version
+(define/contract (num-matching-subseq s words)
+  (-> string? (listof string?) exact-integer?)
+  (hash-ref (for/fold ([h (for/fold ([h (hash)])
+                                    ([w (map string->list words)])
+                            (hash-set h (car w) (cons (cdr w) (hash-ref h (car w) empty))))])
+                      ([c s])
+              (for/fold ([hh (hash-remove h c)])
+                        ([ws (hash-ref h c empty)])
+                (if (null? ws)
+                    (hash-update hh 0 add1 0)
+                    (hash-update hh (car ws)
+                                 (curry cons (cdr ws))
+                                 empty))))
+            0 0))
+
+; ; from other people
+; (define (num-matching-subseq s words)
+;   (let ((p (make-vector 26 null)))
+;     (for ((w words))
+;       (let ([i (- (char->integer (string-ref w 0)) 97)])
+;         (vector-set! p i (cons (cdr (string->list w)) (vector-ref p i)))))
+;     (for/sum ((c s))
+;       (let* ([i (- (char->integer c) 97)]
+;              [q (vector-ref p i)])
+;         (vector-set! p i null)
+;         (for/sum ((w q))
+;           (if (null? w)
+;               1
+;               (let ([j (- (char->integer (car w)) 97)])
+;                 (vector-set! p j
+;                              (cons (cdr w) (vector-ref p j)))
+;                 0)))))))
+
+(define s "dsahjpjauf")
+(define words (list "ahjpjau" "ja" "ahbwzgqnuk" "tnmlanowax"))
+
+(num-matching-subseq s words)
