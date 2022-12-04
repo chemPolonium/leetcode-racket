@@ -27,6 +27,20 @@
                       ([r (in-list l)])
               (better m r))))
 
+(require racket/trace)
+
+; by piscesciurus
+(trace-define (closest-cost-1 baseCosts toppingCosts target)
+  (argmin (lambda (x) (+ x (* 114514 (abs (- target x)))))
+          (if (null? baseCosts)
+              (if (null? toppingCosts)
+                  '(0)
+                  (for/list ((x (in-range 3)))
+                    (+ (closest-cost-1 null (cdr toppingCosts) (- target (* x (car toppingCosts))))
+                       (* x (car toppingCosts)))))
+              (for/list ((x baseCosts))
+                (+ (closest-cost-1 null toppingCosts (- target x)) x)))))
+
 ; (closest-cost '(1 7) '(3 4) 10)
 
-(closest-cost '(2 3) '(4 5 100) 18)
+(closest-cost-1 '(2 3) '(4 5 100) 18)
