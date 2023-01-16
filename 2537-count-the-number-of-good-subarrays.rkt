@@ -1,0 +1,26 @@
+#lang racket
+
+(define/contract (count-good nums k)
+  (-> (listof exact-integer?) exact-integer? exact-integer?)
+  (define h (make-hash))
+  (define v (list->vector nums))
+  (define l 0)
+  (define pairs 0)
+  (define ans 0)
+  (for ([x (in-list nums)])
+    (define c (hash-ref h x 0))
+    (set! pairs (+ pairs c))
+    (hash-set! h x (add1 c))
+    (let iter ()
+      (unless (< pairs k)
+        (let* ([lv (vector-ref v l)]
+               [nlvc (sub1 (hash-ref h lv))])
+          (hash-set! h lv nlvc)
+          (set! pairs (- pairs nlvc))
+          (set! l (add1 l)))
+        (iter)))
+    (set! ans (+ ans l)))
+  ans)
+
+; (count-good '(1 1 1 1 1) 10)
+(count-good '(3 1 4 3 2 2 4) 2)

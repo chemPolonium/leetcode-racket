@@ -1,0 +1,30 @@
+#lang racket
+
+(define/contract (range-add-queries n queries)
+  (-> exact-integer? (listof (listof exact-integer?)) (listof (listof exact-integer?)))
+  (define v (build-vector n (lambda (_) (make-vector n))))
+  (define (vector-2d-ref i j)
+    (vector-ref (vector-ref v i) j))
+  (define (vector-2d-update! i j updater)
+    (vector-set! (vector-ref v i) j (updater (vector-2d-ref i j))))
+  (for ([q (in-list queries)])
+    (match-define (list row1 col1 row2 col2) q)
+    (define row2+1 (add1 row2))
+    (define col2+1 (add1 col2))
+    (vector-2d-update! row1 col1 add1)
+    (unless (= col2+1 n) (vector-2d-update! row1 col2+1 sub1))
+    (unless (= row2+1 n) (vector-2d-update! row2+1 col1 sub1))
+    (unless (or (= col2+1 n) (= row2+1 n)) (vector-2d-update! row2+1 col2+1 add1)))
+  (displayln v)
+  (for* ([i (in-range n)]
+         [j (in-range 1 n)])
+    (vector-2d-update! i j (lambda (x) (+ x (vector-2d-ref i (sub1 j))))))
+  (displayln v)
+  (for* ([j (in-range n)]
+         [i (in-range 1 n)])
+    (vector-2d-update! i j (lambda (x) (+ x (vector-2d-ref (sub1 i) j)))))
+  (displayln v)
+  (vector-map! vector->list v)
+  (vector->list v))
+
+(range-add-queries 3 '((1 1 2 2) (0 0 1 1)))
