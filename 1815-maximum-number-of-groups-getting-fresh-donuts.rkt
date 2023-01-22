@@ -34,8 +34,12 @@
                         (define ans
                           (if (zero? (remainder sum-of-base batchSize))
                               (add1 ans-of-base-state)
-                              ans-of-base-state) )
+                              ans-of-base-state))
                         (max m ans)]))))
   (+ auto-happy (recr start-state)))
 
 (max-happy-groups 3 '(1 2 3 4 5 6))
+
+(max-happy-groups 4 '[1 3 2 5 2 2 1 6])
+
+; (max-happy-groups 6 '[369205928 981877451 947462486 899465743 737778942 573732515 520226542 824581298 571789442 251943251 70139785 778962318 43379662 90924712 142825931 182207697 178834435 978165687])
