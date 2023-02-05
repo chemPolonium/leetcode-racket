@@ -1,0 +1,77 @@
+#lang racket
+
+(define/contract (minimum-moves grid)
+  (-> (listof (listof exact-integer?)) exact-integer?)
+  (define grid-vector (list->vector (map list->vector grid)))
+  (define n (vector-length grid-vector))
+
+  (struct pos (row col) #:transparent)
+  (define (pos-move p row col)
+    (pos (+ row (pos-row p)) (+ col (pos-col p))))
+  (define (pos-right p)
+    (pos-move p 0 1))
+  (define (pos-down p)
+    (pos-move p 1 0))
+  (define (pos-rightdown p)
+    (pos-move p 1 1))
+  (define (pos-right2 p)
+    (pos-move p 0 2))
+  (define (pos-down2 p)
+    (pos-move p 2 0))
+  (define (pos-valid? p)
+    (define row (pos-row p))
+    (define col (pos-col p))
+    (and (< row n)
+         (< col n)
+         (zero? (vector-ref (vector-ref grid-vector row) col))))
+  (define start-pos (pos 0 0))
+  (define end-pos (pos (- n 1) (- n 2)))
+
+  (define (can-horz-right? p)
+    (pos-valid? (pos-right2 p)))
+  (define (can-vert-right? p)
+    (and (pos-valid? (pos-right p)) (pos-valid? (pos-rightdown p))))
+  (define (can-horz-down? p)
+    (and (pos-valid? (pos-down p)) (pos-valid? (pos-rightdown p))))
+  (define (can-vert-down? p)
+    (and (pos-valid? (pos-down2 p))))
+  (define (can-horz-rot? p)
+    (can-horz-down? p))
+  (define (can-vert-rot? p)
+    (can-vert-right? p))
+
+  (define horz-set (mutable-set))
+  (define vert-set (mutable-set))
+  (let iter ([dis 1] [current-horz-set (mutable-set start-pos)] [current-vert-set (mutable-set)])
+    (define next-horz-set (mutable-set))
+    (define next-vert-set (mutable-set))
+    (for ([p (in-set current-horz-set)])
+      (when (can-horz-right? p)
+        (set-add! next-horz-set (pos-right p)))
+      (when (can-horz-down? p)
+        (set-add! next-horz-set (pos-down p)))
+      (when (can-horz-rot? p)
+        (set-add! next-vert-set p)))
+    (for ([p (in-set current-vert-set)])
+      (when (can-vert-right? p)
+        (set-add! next-vert-set (pos-right p)))
+      (when (can-vert-down? p)
+        (set-add! next-vert-set (pos-down p)))
+      (when (can-vert-rot? p)
+        (set-add! next-horz-set p)))
+    (set-subtract! next-horz-set horz-set)
+    (set-subtract! next-vert-set vert-set)
+    (set-union! horz-set next-horz-set)
+    (set-union! vert-set next-vert-set)
+    (cond [(set-member? next-horz-set end-pos) dis]
+          [(and (set-empty? next-horz-set) (set-empty? next-vert-set)) -1]
+          [else (iter (add1 dis) next-horz-set next-vert-set)])))
+
+(define grid '[[0 0 0 0 0 1]
+               [1 1 0 0 1 0]
+               [0 0 0 0 1 1]
+               [0 0 1 0 1 0]
+               [0 1 1 0 0 0]
+               [0 1 1 0 0 0]])
+
+(minimum-moves grid)
