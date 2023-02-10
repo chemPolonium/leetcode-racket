@@ -1,0 +1,25 @@
+#lang racket
+
+(define/contract (die-simulator n rollMax)
+  (-> exact-integer? (listof exact-integer?) exact-integer?)
+  (define (mod x) (modulo x 1000000007))
+  (define rollmax-vec (list->vector rollMax))
+  (define (rollmax x) (vector-ref rollmax-vec x))
+  (define d (build-vector (add1 n) (λ (_) (make-vector 6 0))))
+  (define s (make-vector (add1 n)))
+  (define (d-ref i j) (vector-ref (vector-ref d i) j))
+  (define (d-set! i j v) (vector-set! (vector-ref d i) j v))
+  (define (s-ref i) (vector-ref s i))
+  (define (s-set! i v) (vector-set! s i v))
+  (s-set! 0 1)
+  (for* ([i (in-range 1 (add1 n))]
+         [j (in-range 6)])
+    (define pos (max (- i (rollmax j) 1) 0))
+    (define sub (mod (- (s-ref pos) (d-ref pos j))))
+    (d-set! i j (mod (- (s-ref (sub1 i)) sub)))
+    (when (<= i (rollmax j))
+      (d-set! i j (mod (add1 (d-ref i j)))))
+    (s-set! i (mod (+ (s-ref i) (d-ref i j)))))
+  (s-ref n))
+
+(die-simulator 2 '(1 1 2 2 2 3))
