@@ -1,5 +1,8 @@
 #lang racket
 
+(define (vector-update! vec pos updater)
+  (vector-set! vec pos (updater (vector-ref vec pos))))
+
 (define (vector-binary-search vec value)
   (let iter ([start 0]
              [end (vector-length vec)])
