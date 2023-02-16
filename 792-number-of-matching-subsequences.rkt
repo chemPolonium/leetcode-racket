@@ -97,20 +97,35 @@
 ;              q))))
 
 ; ; pure function! final version
+; (define/contract (num-matching-subseq s words)
+;   (-> string? (listof string?) exact-integer?)
+;   (hash-ref (for/fold ([h (for/fold ([h (hash)])
+;                                     ([w (map string->list words)])
+;                             (hash-set h (car w) (cons (cdr w) (hash-ref h (car w) empty))))])
+;                       ([c s])
+;               (for/fold ([hh (hash-remove h c)])
+;                         ([ws (hash-ref h c empty)])
+;                 (if (null? ws)
+;                     (hash-update hh 0 add1 0)
+;                     (hash-update hh (car ws)
+;                                  (curry cons (cdr ws))
+;                                  empty))))
+;             0 0))
+
 (define/contract (num-matching-subseq s words)
   (-> string? (listof string?) exact-integer?)
-  (hash-ref (for/fold ([h (for/fold ([h (hash)])
-                                    ([w (map string->list words)])
-                            (hash-set h (car w) (cons (cdr w) (hash-ref h (car w) empty))))])
-                      ([c s])
-              (for/fold ([hh (hash-remove h c)])
-                        ([ws (hash-ref h c empty)])
-                (if (null? ws)
-                    (hash-update hh 0 add1 0)
-                    (hash-update hh (car ws)
-                                 (curry cons (cdr ws))
-                                 empty))))
-            0 0))
+  (define h
+    (foldl (λ (w h) (hash-update h (car w) (λ (l) (cons (cdr w) l)) null))
+           (hasheq)
+           (map string->list words)))
+  (for/fold ([h h] [ss 0] #:result ss)
+            ([c (in-string s)])
+    (for/fold ([hh (hash-remove h c)] [ss ss])
+              ([ws (in-list (hash-ref h c null))])
+      (cond [(null? ws) (values hh (add1 ss))]
+            [else
+             (values (hash-update hh (car ws) (λ (l) (cons (cdr ws) l)) null)
+                     ss)]))))
 
 ; ; from other people
 ; (define (num-matching-subseq s words)
