@@ -146,6 +146,11 @@
   (time (for ([i (in-range l)])
           (f v i))))
 
+(define (make-vec2d m n [v 0]) (build-vector m (λ (_) (make-vector n v))))
+(define (vec2d-ref vec m n) (vector-ref (vector-ref vec m) n))
+(define (vec2d-set! vec m n v) (vector-set! (vector-ref vec m) n v))
+(define (vec2d-update! vec m n updater) (vec2d-set! vec m n (updater (vec2d-ref vec m n))))
+
 (define (test-vector-binary-search)
   (test-vector-search vector-binary-search))
 
