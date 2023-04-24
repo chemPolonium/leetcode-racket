@@ -1,0 +1,23 @@
+#lang racket
+
+(define/contract (last-substring s)
+  (-> string? string?)
+  (define i 0)
+  (define j 1)
+  (define n (string-length s))
+  (do () ((>= j n))
+    (let ([k 0])
+      (do () ((or (>= (+ j k) n)
+                  (not (char=? (string-ref s (+ i k))
+                               (string-ref s (+ j k))))))
+        (set! k (add1 k)))
+      (if (and (< (+ j k) n)
+               (char<? (string-ref s (+ i k))
+                       (string-ref s (+ j k))))
+          (let ([t i])
+            (set! i j)
+            (set! j (max (add1 j) (+ t k 1))))
+          (set! j (+ j k 1)))))
+  (substring s i))
+
+(last-substring "abab")
