@@ -19,10 +19,9 @@
         (let iter ([i (sub1 k)] [prev-vi 1000000001])
           (unless (< i (sub1 n))
             (define vi (vector-ref v i))
-            (cond [(= prev-vi vi) (iter (sub1 i) vi)]
-                  [else
-                   (n-sum (sub1 n) i (- target vi) (cons vi end))
-                   (iter (sub1 i) vi)])))))
+            (unless (= prev-vi vi)
+              (n-sum (sub1 n) i (- target vi) (cons vi end)))
+            (iter (sub1 i) vi)))))
   (n-sum 4 (vector-length v) target null)
   a)
 
