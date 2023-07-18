@@ -1,0 +1,83 @@
+#lang racket
+
+(require data/heap)
+(require data/splay-tree)
+(define/contract (find-crossing-time n k time)
+  (-> exact-integer? exact-integer? (listof (listof exact-integer?)) exact-integer?)
+  (define workers
+    (sequence-fold (lambda (result worker) (cons worker result))
+                   null
+                   (sequence-map (lambda (t i) (cons i t)) (in-indexed time))))
+  (define (parse worker) (match worker [(list i ltr po rtl pn) (values i ltr po rtl pn)]))
+  (define (efficiency<? a b)
+    (define-values (i ltri poi rtli pni) (parse a))
+    (define-values (j ltrj poj rtlj pnj) (parse b))
+    (or (> (+ ltri rtli) (+ ltrj rtlj))
+        (and (= (+ ltri rtli) (+ ltrj rtlj)) (> i j))))
+  (define events-tree (make-adjustable-splay-tree))
+  (define events-heap (make-heap (lambda (a b) (<= (car a) (car b)))))
+  (define rest-bins n)
+  (define arrived-bins 0)
+  (define bridge-empty? true)
+  (define left-heap (make-heap efficiency<?))
+  (define right-heap (make-heap efficiency<?))
+  (define current-time 0)
+  (define (events-empty?)
+    (zero? (splay-tree-count events-tree)))
+  (define (remove-currnet-events!)
+    (splay-tree-remove! events-tree current-time))
+  (define (add-event! t event)
+    (splay-tree-set! events-tree t (cons event (splay-tree-ref events-tree t null))))
+  (define (current-time-events)
+    (define current-iterate (splay-tree-iterate-first events-tree))
+    (values (splay-tree-iterate-key events-tree current-iterate)
+            (splay-tree-iterate-value events-tree current-iterate)))
+  ; a worker left left, manually called
+  (define (l-left-proc worker)
+    (heap-remove-min! left-heap)
+    (set! bridge-empty? false)
+    (add-event! (+ current-time (second worker))
+                (lambda () (r-arrive-proc worker))))
+  ; a worker arrived right, auto called
+  (define (r-arrive-proc worker)
+    (set! bridge-empty? true)
+    (set! rest-bins (sub1 rest-bins))
+    (add-event! (+ current-time (third worker))
+                (lambda () (r-pick-proc worker))))
+  ; a worker picked up a bin, auto called
+  (define (r-pick-proc worker)
+    (heap-add! right-heap worker))
+  ; a worker left right, manually called
+  (define (r-left-proc worker)
+    (set! bridge-empty? false)
+    (heap-remove-min! right-heap)
+    (add-event! (+ current-time (fourth worker))
+                (lambda () (l-arrive-proc worker))))
+  ; a worker arrived at left
+  (define (l-arrive-proc worker)
+    (set! bridge-empty? true)
+    (set! arrived-bins (add1 arrived-bins))
+    (add-event! (+ current-time (fifth worker))
+                (lambda () (l-drop-proc worker))))
+  ; a worker dropped a bin, auto called
+  (define (l-drop-proc worker)
+    (heap-add! left-heap worker))
+  (define (propagate)
+    (cond [(= n arrived-bins) current-time]
+          [else
+           (define-values (ct current-events) (current-time-events))
+           (set! current-time ct)
+           (map (lambda (x) (x)) current-events)
+           (remove-currnet-events!)
+           (cond [(not bridge-empty?)]
+                 [(positive? (heap-count right-heap))
+                  (r-left-proc (heap-min right-heap))]
+                 [(and (positive? rest-bins)
+                       (positive? (heap-count left-heap)))
+                  (l-left-proc (heap-min left-heap))])
+           (propagate)]))
+  (heap-add-all! left-heap workers)
+  (l-left-proc (heap-min left-heap))
+  (propagate))
+
+(find-crossing-time 1 3 '((1 1 2 1) (1 1 3 1) (1 1 4 1)))
