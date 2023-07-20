@@ -10,6 +10,6 @@
       (values new-dpi (select new-dpi m))))
   (define max-pdp (dp max))
   (define min-ndp (dp min))
-  (if (andmap negative? nums)
+  (if (negative? max-pdp)
       max-pdp
       (max max-pdp (- s min-ndp))))
