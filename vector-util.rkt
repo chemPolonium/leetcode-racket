@@ -36,16 +36,33 @@
                 [(negative? comparison) (iter (add1 i) end)]
                 [else i])))))
 
-(define (vector-lower-bound vec value)
-  (let iter ([start 0]
-             [end (vector-length vec)])
+(define (vector-lower-bound vec
+                            value
+                            [start 0]
+                            [end (vector-length vec)]
+                            #:key [key identity]
+                            #:< [< <])
+  (let iter ([start start]
+             [end end])
     (if (= start end)
         start
         (let* ([i (quotient (+ start end) 2)]
-               [it (vector-ref vec i)])
-          (if (< it value)
+               [it (key (vector-ref vec i))]
+               [comparison (< it value)])
+          (if comparison
               (iter (add1 i) end)
               (iter start i))))))
+
+; (define (vector-lower-bound vec value)
+;   (let iter ([start 0]
+;              [end (vector-length vec)])
+;     (if (= start end)
+;         start
+;         (let* ([i (quotient (+ start end) 2)]
+;                [it (vector-ref vec i)])
+;           (if (< it value)
+;               (iter (add1 i) end)
+;               (iter start i))))))
 
 (define (vector-lower-bound-key vec value key)
   (let iter ([start 0]
@@ -69,36 +86,20 @@
               (iter (add1 i) end)
               (iter start i))))))
 
-(define (vector-upper-bound vec value)
-  (let iter ([start 0]
-             [end (vector-length vec)])
+(define (vector-upper-bound vec
+                            value
+                            [start 0]
+                            [end (vector-length vec)]
+                            #:key [key identity]
+                            #:< [< <])
+  (let iter ([start start]
+             [end end])
     (if (= start end)
         start
         (let* ([i (quotient (+ start end) 2)]
-               [it (vector-ref vec i)])
-          (if (> it value)
-              (iter start i)
-              (iter (add1 i) end))))))
-
-(define (vector-upper-bound-key vec value key)
-  (let iter ([start 0]
-             [end (vector-length vec)])
-    (if (= start end)
-        start
-        (let* ([i (quotient (+ start end) 2)]
-               [it (key (vector-ref vec i))])
-          (if (> it value)
-              (iter start i)
-              (iter (add1 i) end))))))
-
-(define (vector-upper-bound-cmp vec value cmp)
-  (let iter ([start 0]
-             [end (vector-length vec)])
-    (if (= start end)
-        start
-        (let* ([i (quotient (+ start end) 2)]
-               [comparison (cmp (vector-ref vec i) value)])
-          (if (positive? comparison)
+               [it (key (vector-ref vec i))]
+               [comparison (< value it)])
+          (if comparison
               (iter start i)
               (iter (add1 i) end))))))
 
