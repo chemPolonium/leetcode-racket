@@ -152,6 +152,20 @@
 (define (vec2d-set! vec m n v) (vector-set! (vector-ref vec m) n v))
 (define (vec2d-update! vec m n updater) (vec2d-set! vec m n (updater (vec2d-ref vec m n))))
 
+(struct ndvec (size data) #:transparent)
+(define (make-ndvec size [v 0]) (ndvec size (make-vector (apply * size) v)))
+(define (sub->ind size sub)
+  (let iter ([size (cdr size)] [sub (cdr sub)] [acc (car sub)])
+    (if (null? size) acc (iter (cdr size) (cdr sub) (+ (* acc (car size)) (car sub))))))
+(define (ndvec-ref vec pos)
+  (vector-ref (ndvec-data vec) (sub->ind (ndvec-size vec) pos)))
+(define (ndvec-set! vec pos v)
+  (vector-set! (ndvec-data vec) (sub->ind (ndvec-size vec) pos) v))
+(define (ndvec-update! vec pos updater)
+  (let* ([ind (sub->ind (ndvec-size vec) pos)]
+         [v (vector-ref (ndvec-data vec) ind)])
+    (vector-set! (ndvec-data vec) ind (updater v))))
+
 (define (test-vector-binary-search)
   (test-vector-search vector-binary-search))
 
