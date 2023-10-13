@@ -29,7 +29,7 @@
           [(and (positive? (heap-count lake-heap))
                 (= i (cdr (heap-min lake-heap))))
            ; rain, and the urgent day comes
-           ; (= r (cdr (heap-min lake-heap))) also ok
+           ; (= r (car (heap-min lake-heap))) also ok
            (set! lake-heap #f)]
           [else
            (define next-day-queue (hash-ref lake-days r))
