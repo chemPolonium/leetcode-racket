@@ -1,0 +1,27 @@
+#lang racket
+
+(define/contract (find-indices nums indexDifference valueDifference)
+  (-> (listof exact-integer?) exact-integer? exact-integer? (listof exact-integer?))
+  (define nums-vec (list->vector nums))
+  (define n (vector-length nums-vec))
+  (define max-vec (make-vector n))
+  (define min-vec (make-vector n))
+  (vector-set! max-vec 0 (car nums))
+  (vector-set! min-vec 0 (car nums))
+  (for ([(n i) (sequence-tail (in-indexed nums) 1)])
+    (vector-set! max-vec i (max n (vector-ref max-vec (sub1 i))))
+    (vector-set! min-vec i (min n (vector-ref min-vec (sub1 i)))))
+  (let/cc return
+    (for ([i (in-range indexDifference n)])
+      (define ni (vector-ref nums-vec i))
+      (when (<= (+ valueDifference (vector-ref min-vec (- i indexDifference))) ni)
+        (for ([j (in-range (add1 i))])
+          (when (<= (+ valueDifference (vector-ref nums-vec j)) ni)
+            (return (list j i)))))
+      (when (>= (- (vector-ref max-vec (- i indexDifference)) valueDifference) ni)
+        (for ([j (in-range (add1 i))])
+          (when (>= (- (vector-ref nums-vec j) valueDifference) ni)
+            (return (list j i))))))
+    '(-1 -1)))
+
+(find-indices '(5 1 4 1) 2 4)
