@@ -152,6 +152,17 @@
 (define (vec2d-set! vec m n v) (vector-set! (vector-ref vec m) n v))
 (define (vec2d-update! vec m n updater) (vec2d-set! vec m n (updater (vec2d-ref vec m n))))
 
+(struct grid (size data) #:transparent)
+(define (make-grid m n [v 0]) (grid (cons m n) (make-vector (* m n) v)))
+(define (grid-ref vec m n)
+  (vector-ref (grid-data vec) (+ (* m (cdr (grid-size vec))) n)))
+(define (grid-set! vec m n v)
+  (vector-set! (grid-data vec) (+ (* m (cdr (grid-size vec))) n) v))
+(define (grid-update! vec m n updater)
+  (let ([data (grid-data vec)]
+        [ind (+ (* m (cdr (grid-size vec))) n)])
+    (vector-set! data ind (updater (vector-ref data ind)))))
+
 (struct ndvec (size data) #:transparent)
 (define (make-ndvec size [v 0]) (ndvec size (make-vector (apply * size) v)))
 (define (sub->ind size sub)
