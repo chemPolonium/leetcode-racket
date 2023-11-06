@@ -7,9 +7,8 @@
   (define (word->int word)
     (for/fold ([acc 0])
               ([c (in-string word)])
-      (bitwise-ior
-       acc
-       (arithmetic-shift 1 (char->alphabet c)))))
+      (bitwise-ior acc
+                   (arithmetic-shift 1 (char->alphabet c)))))
   (define word-length-vec (list->vector (map string-length words)))
   (define alphabet-vec (list->vector (map word->int words)))
   (define n (vector-length word-length-vec))
