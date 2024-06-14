@@ -1,0 +1,28 @@
+#lang racket
+
+(define/contract (max-coins nums)
+  (-> (listof exact-integer?) exact-integer?)
+  (define (make-vec2d m n [v 0]) (build-vector m (λ (_) (make-vector n v))))
+  (define (vec2d-ref vec m n) (vector-ref (vector-ref vec m) n))
+  (define (vec2d-set! vec m n v) (vector-set! (vector-ref vec m) n v))
+  (define v (list->vector nums))
+  (define l (vector-length v))
+  (define (nums-ref i) (if (< -1 i l) (vector-ref v i) 1))
+  (define dp (make-vec2d (add1 l) (add1 l)))
+  (for ([i (in-range l)])
+    (define p (* (nums-ref (sub1 i)) (nums-ref i) (nums-ref (add1 i))))
+    (vec2d-set! dp i (add1 i) p))
+  (for ([d (in-inclusive-range 2 l)])
+    (for ([i (in-inclusive-range 0 (- l d))])
+      (define j (+ i d))
+      (define m
+        (for/fold ([m 0])
+                  ([k (in-range i j)])
+          (define p (* (nums-ref (sub1 i)) (nums-ref k) (nums-ref j)))
+          (define pp (+ (vec2d-ref dp i k) (vec2d-ref dp (add1 k) j) p))
+          (max m pp)))
+      (vec2d-set! dp i j m)))
+  (vec2d-ref dp 0 l))
+
+(max-coins '(3 1 5 8))
+(max-coins '(1 5))
