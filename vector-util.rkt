@@ -152,6 +152,13 @@
 (define (vec2d-set! vec m n v) (vector-set! (vector-ref vec m) n v))
 (define (vec2d-update! vec m n updater) (vec2d-set! vec m n (updater (vec2d-ref vec m n))))
 
+(define (make-upgrid n [v 0])
+  (make-vector (arithmetic-shift (* n (add1 n)) -1)))
+(define (upgrid-ref g l m n)
+  (vector-ref g (- (+ n (* m l)) (arithmetic-shift (* m (add1 m)) -1))))
+(define (upgrid-set! g l m n v)
+  (vector-set! g (- (+ n (* m l)) (arithmetic-shift (* m (add1 m)) -1)) v))
+
 (struct grid (size data) #:transparent)
 (define (make-grid m n [v 0]) (grid (cons m n) (make-vector (* m n) v)))
 (define (grid-ref vec m n)
