@@ -1,0 +1,37 @@
+#lang racket
+
+(define/contract (max-increasing-cells mat)
+  (-> (listof (listof exact-integer?)) exact-integer?)
+  (define (make-vec2d m n [v 0]) (build-vector m (λ (_) (make-vector n v))))
+  (define (vec2d-ref vec m n) (vector-ref (vector-ref vec m) n))
+  (define (vec2d-set! vec m n v) (vector-set! (vector-ref vec m) n v))
+  (define nums (list->vector (map list->vector mat)))
+  (define m (vector-length nums))
+  (define n (vector-length (vector-ref nums 0)))
+  (define h (make-hasheq))
+  (for* ([i (in-range m)]
+         [j (in-range n)])
+    (define num (vec2d-ref nums i j))
+    (hash-update! h num (λ (x) (cons (cons i j) x)) null))
+  (define row-max-l (make-vector m))
+  (define col-max-l (make-vector n))
+  (for ([num (in-list (sort (hash-keys h) >))])
+    (define coors (hash-ref h num))
+    (define res
+      (for/list ([coor (in-list coors)])
+        (define row (car coor))
+        (define col (cdr coor))
+        (define row-max (vector-ref row-max-l row))
+        (define col-max (vector-ref col-max-l col))
+        (add1 (max row-max col-max))))
+    (for ([res-i (in-list res)]
+          [coor (in-list coors)])
+      (define row (car coor))
+      (define col (cdr coor))
+      (vector-set! row-max-l row (max (vector-ref row-max-l row) res-i))
+      (vector-set! col-max-l col (max (vector-ref col-max-l col) res-i))))
+  (for/fold ([m 0])
+            ([r (in-vector row-max-l)])
+    (max m r)))
+
+(max-increasing-cells '((3 1 6) (-9 5 7)))
