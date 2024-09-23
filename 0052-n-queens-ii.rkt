@@ -3,8 +3,7 @@
 (define/contract (total-n-queens n)
   (-> exact-integer? exact-integer?)
   (let iter ([l null] [k 0] [i 0] [ans 0])
-    (cond [(zero? n) 1]
-          [(and (zero? k) (= i n)) ans]
+    (cond [(and (zero? k) (= i n)) ans]
           [(= i n) (iter (cdr l) (sub1 k) (add1 (car l)) ans)]
           [(= k n) (iter (cdr l) (sub1 k) (add1 (car l)) (add1 ans))]
           [(for/and ([(lj j) (in-indexed (in-list l))])
