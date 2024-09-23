@@ -2,20 +2,36 @@
 
 (define/contract (solve-n-queens n)
   (-> exact-integer? (listof (listof string?)))
-  (define ans
-    (let iter ([l null] [k 0] [i 0] [ans null])
-      (cond [(and (zero? k) (= i n)) ans]
-            [(= i n) (iter (cdr l) (sub1 k) (add1 (car l)) ans)]
-            [(= k n) (iter (cdr l) (sub1 k) (add1 (car l)) (cons l ans))]
-            [(for/and ([(lj j) (in-indexed (in-list l))])
-               (not (or (= lj i) (= lj (+ i j 1)) (= lj (- i j 1)))))
-             (iter (cons i l) (add1 k) 0 ans)]
-            [else (iter l k (add1 i) ans)])))
-  (for/list ([l (in-list ans)])
-    (for/list ([i (in-list l)])
-      (define s (make-string n #\.))
-      (string-set! s i #\Q)
-      s)))
+  (map (lambda (l)
+         (for/list ([i (in-list l)])
+           (define s (make-string n #\.))
+           (string-set! s i #\Q)
+           s))
+       (let iter ([l null] [k 0] [i 0] [ans null])
+         (cond [(and (zero? k) (= i n)) ans]
+               [(= i n) (iter (cdr l) (sub1 k) (add1 (car l)) ans)]
+               [(= k n) (iter (cdr l) (sub1 k) (add1 (car l)) (cons l ans))]
+               [(for/and ([(lj j) (in-indexed (in-list l))])
+                  (not (or (= lj i) (= lj (+ i j 1)) (= lj (- i j 1)))))
+                (iter (cons i l) (add1 k) 0 ans)]
+               [else (iter l k (add1 i) ans)]))))
+
+; (define/contract (solve-n-queens n)
+;   (-> exact-integer? (listof (listof string?)))
+;   (define ans
+;     (let iter ([l null] [k 0] [i 0] [ans null])
+;       (cond [(and (zero? k) (= i n)) ans]
+;             [(= i n) (iter (cdr l) (sub1 k) (add1 (car l)) ans)]
+;             [(= k n) (iter (cdr l) (sub1 k) (add1 (car l)) (cons l ans))]
+;             [(for/and ([(lj j) (in-indexed (in-list l))])
+;                (not (or (= lj i) (= lj (+ i j 1)) (= lj (- i j 1)))))
+;              (iter (cons i l) (add1 k) 0 ans)]
+;             [else (iter l k (add1 i) ans)])))
+;   (for/list ([l (in-list ans)])
+;     (for/list ([i (in-list l)])
+;       (define s (make-string n #\.))
+;       (string-set! s i #\Q)
+;       s)))
 
 ; (require data/gvector)
 ; (define/contract (solve-n-queens n)
