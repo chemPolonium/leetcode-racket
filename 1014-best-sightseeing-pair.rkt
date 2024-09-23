@@ -1,0 +1,27 @@
+#lang racket
+
+(define/contract (max-score-sightseeing-pair vals)
+  (-> (listof exact-integer?) exact-integer?)
+  (for/fold ([a 0] [mx (car vals)] #:result a)
+            ([(vi i) (sequence-tail (in-indexed (in-list vals)) 1)])
+    (values (max a (+ mx vi (- i)))
+            (max mx (+ vi i)))))
+
+;;; more straightforward version
+; (define/contract (max-score-sightseeing-pair values)
+;   (-> (listof exact-integer?) exact-integer?)
+;   (define v (list->vector values))
+;   (define n (vector-length v))
+;   (define iv (make-vector n))
+;   (define jv (make-vector n))
+;   (for ([i (in-range n)])
+;     (vector-set! iv i (+ (vector-ref v i) i)))
+;   (for ([i (in-range 1 n)])
+;     (vector-set! iv i (max (vector-ref iv (sub1 i)) (vector-ref iv i))))
+;   (for ([j (in-range (sub1 n) -1 -1)])
+;     (vector-set! jv j (- (vector-ref v j) j)))
+;   (for ([j (in-range (- n 2) -1 -1)])
+;     (vector-set! jv j (max (vector-ref jv (add1 j)) (vector-ref jv j))))
+;   (for/fold ([m 0])
+;             ([i (in-range (sub1 n))])
+;     (max m (+ (vector-ref iv i) (vector-ref jv (add1 i))))))
