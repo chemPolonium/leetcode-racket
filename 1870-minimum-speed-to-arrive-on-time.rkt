@@ -6,7 +6,7 @@
     (for/sum ([(d i) (in-indexed (in-list dist))])
       (if (= (sub1 n) i)
           (/ d speed)
-          (ceiling (/ d speed)))))
+          (quotient (+ d speed -1) speed))))
   (define (min-speed lo hi)
     (define mid (quotient (+ lo hi) 2))
     (cond [(= lo mid) (add1 lo)]
