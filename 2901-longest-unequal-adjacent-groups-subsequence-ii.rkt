@@ -1,9 +1,9 @@
 #lang racket
 
-(define/contract (get-words-in-longest-subsequence n words groups)
-  (-> exact-integer? (listof string?) (listof exact-integer?) (listof string?))
+(define (get-words-in-longest-subsequence words groups)
   (define words-vec (list->vector words))
   (define groups-vec (list->vector groups))
+  (define n (vector-length words-vec))
   (define len-vec (make-vector n 1))
   (define prev-vec (make-vector n -1))
   (define (h-length=1? a b)
