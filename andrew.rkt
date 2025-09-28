@@ -56,6 +56,6 @@
                 (if (point=? next (first next-wasted))
                     (recr prev curr next-wasted next-remained)
                     (values next-wasted (cons curr next-remained))))))))
-  (recr (first sorted) (first sorted) empty (rest sorted)))
+  (recr path-left path-left empty (rest sorted)))
 
 (andrew '((0 0) (3 -1) (1 4) (2 5) (4 1) (4 2) (6 4)))
