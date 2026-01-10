@@ -8,7 +8,7 @@
   (define a (+ (char-sum s1) (char-sum s2)))
   (define vdp (make-vector (string-length s2) a))
   (for*/fold ([h a])
-             ([(ci i) (in-indexed (in-string s1))]
+             ([ci (in-string s1)]
               [(cj j) (in-indexed (in-string s2))])
     (define u (vector-ref vdp j))
     (define l (if (zero? j) a (vector-ref vdp (sub1 j))))
